@@ -12,6 +12,7 @@ import Loader from './components/ui/Loader';
 import ContactModal from './components/modals/ContactModal';
 import PrivacyModal from './components/modals/PrivacyModal';
 import TermsModal from './components/modals/TermsModal';
+import WaterDropletsBackground from './components/ui/WaterDropletsBackground';
 import {
   HeroSection,
   WaterSection,
@@ -134,12 +135,12 @@ export default function App() {
     });
 
     bgTimeline
-      .to(containerRef.current, { backgroundColor: '#EFFAF9', ease: 'none', duration: 1 })
-      .to(containerRef.current, { backgroundColor: '#E5F7F6', ease: 'none', duration: 1 })
-      .to(containerRef.current, { backgroundColor: '#D6F1F2', ease: 'none', duration: 1 })
-      .to(containerRef.current, { backgroundColor: '#C5E9ED', ease: 'none', duration: 1 })
-      .to(containerRef.current, { backgroundColor: '#B6E2E9', ease: 'none', duration: 1 })
-      .to(containerRef.current, { backgroundColor: '#F7FCFC', ease: 'none', duration: 1 });
+      .to(containerRef.current, { backgroundColor: '#F8FEFD', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#F5FAF9', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#F3F9F9', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#F4FAF9', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#F5FAF9', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#F8FEFD', ease: 'none', duration: 1 });
 
     // 8. Cinematic DOM Elements Scroll Animation
     const sectionIds = ['#hero', '#water', '#alkaline', '#ionised', '#process', '#product', '#final'];
@@ -256,6 +257,9 @@ export default function App() {
         id="app-scroll-container" 
         className="w-full bg-[#F8FEFD] min-h-screen overflow-x-hidden relative transition-colors duration-300"
       >
+        {/* Interactive Water Droplets & Click Ripple Canvas */}
+        <WaterDropletsBackground />
+
         {/* Persistent WebGL 3D Canvas */}
         <Experience />
 
