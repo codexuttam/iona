@@ -26,7 +26,7 @@ export default function Loader() {
       } else if (count < 85) {
         setStatusText('ELECTROLYTIC PLATINUM IONISATION · pH 8.5+');
       } else {
-        setStatusText('CALIBRATING 4K OPTICAL REFRACTION');
+        setStatusText('CALIBRATING OPTICAL REFRACTION');
       }
 
       if (count >= 100) {
@@ -107,7 +107,7 @@ export default function Loader() {
             IONA
           </span>
           <span className="hidden sm:inline-block text-[9px] tracking-[0.3em] font-mono text-[#72BDCE] uppercase py-0.5 px-2 rounded-full border border-[#287F91]/40 bg-[#102A30]/50">
-            4K IMMERSIVE
+            PRESTIGE WATER
           </span>
         </div>
         

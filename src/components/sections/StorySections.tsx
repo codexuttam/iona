@@ -26,10 +26,9 @@ export function HeroSection() {
       <div /> {/* Spacer */}
 
       <div className="max-w-4xl pt-16 md:pt-24 pointer-events-auto">
-        {/* Ciao Energy inspired subhead pill */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E7F7F6]/80 backdrop-blur-md border border-[#CDEEEF] text-[#287F91] text-[10px] sm:text-xs font-mono tracking-[0.25em] uppercase font-bold mb-6">
           <Sparkles className="w-3 h-3" />
-          <span>4K ALKALINE RESTORATION</span>
+          <span>ALKALINE RESTORATION</span>
         </div>
 
         <h1 className="font-black italic uppercase leading-[0.85] tracking-tighter text-7xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-[#102A30] text-wrap-balance">
@@ -325,7 +324,7 @@ export function ProductSection() {
           <div className="text-[#102A30] font-bold">IONA™ BOTTLING CO.</div>
           <div className="text-[#58747A] mt-1">CAPACITY: 750 ML / 25.4 OZ</div>
           <div className="text-[#58747A]">MATERIAL: PHARMACEUTICAL GLASS</div>
-          <div className="text-[#287F91] mt-1 font-bold">RESOLUTION: 4K HIGH FIDELITY</div>
+          <div className="text-[#287F91] mt-1 font-bold">PURITY: 100% BIOAVAILABLE</div>
         </div>
       </div>
 
@@ -397,7 +396,7 @@ export function ProductSection() {
       </div>
 
       <div className="text-center text-xs font-mono text-[#58747A] pointer-events-auto">
-        ✦ INTERACTIVE 4K VIEWPORT · DRAG DIRECTLY ON THE BOTTLE TO EXAMINE
+        ✦ INTERACTIVE 3D VIEWPORT · DRAG DIRECTLY ON THE BOTTLE TO EXAMINE
       </div>
     </section>
   );

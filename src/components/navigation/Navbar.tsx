@@ -27,19 +27,13 @@ export default function Navbar({ onOpenModal }: NavbarProps) {
     <>
       <header className="fixed top-0 left-0 w-full z-40 px-6 md:px-12 py-5 flex items-center justify-between border-b border-[#CDEEEF]/20 bg-[#F8FEFD]/70 backdrop-blur-xl">
         
-        {/* Zone 1: Brand Wordmark with 4K badge */}
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => handleScrollTo('hero')}
-            className="text-2xl font-black italic uppercase tracking-tighter text-[#102A30] hover:text-[#287F91] transition-colors cursor-pointer select-none"
-          >
-            IONA
-          </button>
-          <span className="hidden lg:inline-flex items-center gap-1 text-[9px] font-mono tracking-widest text-[#287F91] uppercase px-2 py-0.5 rounded-full bg-[#E7F7F6] border border-[#CDEEEF]/60">
-            <Sparkles className="w-2.5 h-2.5" />
-            <span>4K ULTRA PURE</span>
-          </span>
-        </div>
+        {/* Zone 1: Brand Wordmark */}
+        <button 
+          onClick={() => handleScrollTo('hero')}
+          className="text-2xl font-black italic uppercase tracking-tighter text-[#102A30] hover:text-[#287F91] transition-colors cursor-pointer select-none"
+        >
+          IONA
+        </button>
 
         {/* Zone 2: Streamlined Nav Links (Desktop) */}
         <nav className="hidden md:flex items-center gap-8 text-xs tracking-[0.2em] font-bold text-[#58747A] uppercase select-none">

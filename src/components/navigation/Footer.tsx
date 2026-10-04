@@ -28,7 +28,7 @@ export default function Footer({ onOpenModal }: FooterProps) {
           <div>
             <div className="inline-flex items-center gap-2 text-xs tracking-[0.25em] font-bold text-[#287F91] uppercase mb-2">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>THE 4K PURITY STANDARD</span>
+              <span>THE PURITY STANDARD</span>
             </div>
             <h3 className="font-black italic uppercase text-2xl md:text-3xl text-[#102A30] tracking-tight">
               ELEVATE YOUR EVERYDAY HYDRATION.
