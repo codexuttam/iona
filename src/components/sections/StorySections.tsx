@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { updateState } from '../experience/ExperienceState';
+import { useEffect, useState, useRef } from 'react';
+import { updateState, expState, subscribeToState } from '../experience/ExperienceState';
 import MagneticButton from '../ui/MagneticButton';
-import { ChevronDown, ArrowRight, ShieldCheck, Zap, Droplet, Sparkles, X, Check, Lock } from 'lucide-react';
+import { ChevronDown, ArrowRight, ShieldCheck, Zap, Droplet, Sparkles, X, Check, Droplets } from 'lucide-react';
 
 // Ciao Energy Technical Corner Marks Helper
 function CornerMarks() {
@@ -26,11 +26,6 @@ export function HeroSection() {
       <div /> {/* Spacer */}
 
       <div className="max-w-4xl pt-16 md:pt-24 pointer-events-auto">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E7F7F6]/80 backdrop-blur-md border border-[#CDEEEF] text-[#287F91] text-[10px] sm:text-xs font-mono tracking-[0.25em] uppercase font-bold mb-6">
-          <Sparkles className="w-3 h-3" />
-          <span>ALKALINE RESTORATION</span>
-        </div>
-
         <h1 className="font-black italic uppercase leading-[0.85] tracking-tighter text-7xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-[#102A30] text-wrap-balance">
           PURE<br />
           WATER.<br />
@@ -73,10 +68,6 @@ export function WaterSection() {
         
         {/* Ambient Back Glow */}
         <div className="absolute -top-20 -right-20 w-44 h-44 bg-[#CDEEEF]/50 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] text-[#287F91] text-[10px] font-mono tracking-[0.25em] uppercase font-bold mb-4">
-          <span>01 / PURPOSE</span>
-        </div>
 
         <h2 className="font-black italic uppercase leading-tight tracking-tight text-5xl md:text-7xl text-[#102A30] text-wrap-balance">
           WATER,<br />
@@ -132,11 +123,6 @@ export function AlkalineSection() {
 
         <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-[#72BDCE]/25 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] text-[#287F91] text-[10px] font-mono tracking-[0.25em] uppercase font-bold mb-4">
-          <Zap className="w-3 h-3" />
-          <span>02 / EQUILIBRIUM</span>
-        </div>
-
         <h2 className="font-black italic uppercase leading-none tracking-tight text-5xl md:text-7xl text-[#102A30] text-wrap-balance">
           BALANCED<br />
           BY NATURE.
@@ -180,11 +166,6 @@ export function IonisedSection() {
     >
       <div className="max-w-xl md:ml-auto md:mr-12 pointer-events-auto relative bg-[#F8FEFD]/75 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-[#CDEEEF]/60 shadow-[0_15px_40px_rgba(16,42,48,0.06)] overflow-hidden">
         <CornerMarks />
-
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] text-[#287F91] text-[10px] font-mono tracking-[0.25em] uppercase font-bold mb-4">
-          <Sparkles className="w-3 h-3" />
-          <span>03 / ABSORPTION</span>
-        </div>
 
         <h2 className="font-black italic uppercase leading-none tracking-tight text-5xl md:text-7xl text-[#102A30] text-wrap-balance">
           IONISED.<br />
@@ -257,10 +238,6 @@ export function ProcessSection() {
       className="section-block w-full min-h-screen flex flex-col justify-center px-6 md:px-16 lg:px-24 py-16 relative z-20 pointer-events-none"
     >
       <div className="max-w-2xl pointer-events-auto">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] text-[#287F91] text-[10px] font-mono tracking-[0.25em] uppercase font-bold mb-4">
-          <span>04 / ORIGINS</span>
-        </div>
-
         <h2 className="font-black italic uppercase leading-none tracking-tight text-5xl md:text-7xl text-[#102A30] text-wrap-balance mb-8">
           THE IONA<br />
           PROCESS.
@@ -291,112 +268,211 @@ export function ProcessSection() {
             );
           })}
         </div>
-
-        <p className="text-xs text-[#58747A] italic text-right font-light">
-          *Click a process stage to alter the 3D WebGL water environment.
-        </p>
       </div>
     </section>
   );
 }
 
-// SECTION 6: PRODUCT SHOWCASE
+// SECTION 6: PRODUCT SHOWCASE WITH SCROLLING CARDS & SYNCHRONIZED BOTTLE ROTATION
+const PRODUCT_CARDS = [
+  {
+    spec: '750 ML',
+    badge: 'ERGONOMIC CAPACITY',
+    title: '750 ML VOLUME',
+    highlight: 'OPTIMAL CELLULAR HYDRATION',
+    desc: 'Meticulously proportioned for daily cellular replenishment. Ergonomically balanced crystal weight engineered for fine dining hospitality and personal hydration rituals.',
+    metric: '750 ML',
+    sub: '25.4 FL OZ NET',
+    icon: Droplet,
+  },
+  {
+    spec: 'GLASS',
+    badge: 'CASING & INTEGRITY',
+    title: 'CRYSTAL GLASS',
+    highlight: 'ZERO MICROPLASTICS · 100% INERT',
+    desc: '100% recyclable, medical-grade inert borosilicate glass casing. Non-porous surface protects molecular micro-clustering and eliminates thermal chemical leaching entirely.',
+    metric: '100%',
+    sub: 'PURE INERT CASING',
+    icon: ShieldCheck,
+  },
+  {
+    spec: 'MINERALS',
+    badge: 'BIO-AVAILABILITY',
+    title: 'IONS & MINERALS',
+    highlight: 'VOLCANIC COMPLEX MATRIX',
+    desc: 'Naturally stabilized with bio-available ionic calcium, magnesium, and trace potassium. Delivers a clean, silky mouthfeel with superior cellular absorption.',
+    metric: '72+',
+    sub: 'TRACE DISSOLVED IONS',
+    icon: Zap,
+  },
+  {
+    spec: 'ALKALINE',
+    badge: 'POURING ERGONOMICS',
+    title: 'FLAME-POLISHED LIP',
+    highlight: 'pH 8.5+ · PERFECT POUR',
+    desc: 'Heavy crystal base with concave punt refraction. Precision flame-polished lip bead ensures an effortless, smooth, spill-free pour into fine stemware.',
+    metric: '8.5+',
+    sub: 'ALKALINE pH BALANCE',
+    icon: Sparkles,
+  },
+];
+
 export function ProductSection() {
-  const [hoveredSpec, setHoveredSpec] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [activeCard, setActiveCard] = useState(0);
+
+  // Scroll synchronization: scrolling through this section cycles through cards
+  // and rotates the bottle to showcase each feature!
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowH = window.innerHeight;
+      const totalDist = rect.height - windowH;
+      if (totalDist <= 0) return;
+
+      const scrolled = -rect.top;
+      const fraction = Math.max(0, Math.min(0.999, scrolled / totalDist));
+      const cardIdx = Math.min(PRODUCT_CARDS.length - 1, Math.floor(fraction * PRODUCT_CARDS.length));
+
+      setActiveCard((prev) => {
+        if (prev !== cardIdx) {
+          updateState({ activeProductCard: cardIdx });
+          return cardIdx;
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const selectCard = (index: number) => {
+    setActiveCard(index);
+    updateState({ activeProductCard: index });
+
+    if (sectionRef.current) {
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowH = window.innerHeight;
+      const totalDist = rect.height - windowH;
+      if (totalDist > 0) {
+        const targetScrollY = window.scrollY + rect.top + (index / (PRODUCT_CARDS.length - 1)) * totalDist;
+        window.scrollTo({ top: targetScrollY, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const current = PRODUCT_CARDS[activeCard];
+  const Icon = current.icon;
 
   return (
     <section 
+      ref={sectionRef}
       id="product"
       data-section-index="5"
-      className="section-block w-full min-h-screen flex flex-col justify-between px-6 md:px-16 lg:px-24 py-16 relative z-20 pointer-events-none"
+      className="section-block w-full min-h-[260vh] relative z-20 pointer-events-none"
     >
-      <div className="w-full flex justify-between items-start pointer-events-auto">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] text-[#287F91] text-[10px] font-mono tracking-[0.25em] uppercase font-bold mb-4">
-            <span>05 / ARTIFACT</span>
+      {/* Sticky Viewport Container */}
+      <div className="sticky top-0 w-full h-screen flex flex-col justify-between px-6 md:px-16 lg:px-24 py-12 md:py-16">
+        
+        {/* Top Header & Feature Selector Tabs */}
+        <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pointer-events-auto">
+          <div>
+            <h2 className="font-black italic uppercase leading-none tracking-tight text-5xl md:text-7xl text-[#102A30]">
+              THE IONA<br />
+              BOTTLE.
+            </h2>
           </div>
-          <h2 className="font-black italic uppercase leading-none tracking-tight text-5xl md:text-7xl text-[#102A30]">
-            THE IONA<br />
-            BOTTLE.
-          </h2>
-        </div>
-        <div className="text-right font-mono text-xs hidden md:block p-4 rounded-2xl bg-white/60 border border-[#CDEEEF]/50 backdrop-blur-sm">
-          <div className="text-[#102A30] font-bold">IONA™ BOTTLING CO.</div>
-          <div className="text-[#58747A] mt-1">CAPACITY: 750 ML / 25.4 OZ</div>
-          <div className="text-[#58747A]">MATERIAL: PHARMACEUTICAL GLASS</div>
-          <div className="text-[#287F91] mt-1 font-bold">PURITY: 100% BIOAVAILABLE</div>
-        </div>
-      </div>
 
-      {/* Floating Connecting Spec Labels */}
-      <div className="w-full flex-1 relative py-12 pointer-events-auto">
-        {/* Spec 1: 750 ML */}
-        <div 
-          className="absolute top-[10%] left-[5%] md:left-[12%] group transition-all"
-          onMouseEnter={() => setHoveredSpec('size')}
-          onMouseLeave={() => setHoveredSpec(null)}
-        >
-          <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#287F91] inline-block animate-pulse shadow-[0_0_10px_#287F91]" />
-            <div className="h-[1px] w-8 md:w-16 bg-[#287F91]/50 group-hover:bg-[#287F91] transition-colors" />
-            <div className="p-3 rounded-xl bg-white/70 border border-[#CDEEEF]/60 backdrop-blur-sm shadow-sm">
-              <div className="text-[10px] text-[#58747A] tracking-wider uppercase font-semibold">Volume</div>
-              <div className="font-bold text-base text-[#102A30] font-mono">750 ML</div>
+          {/* Feature Selector Tabs (Editorial Swiss Style) */}
+          <div className="flex flex-wrap items-center gap-2 bg-white/70 p-1.5 rounded-2xl border border-[#CDEEEF]/70 backdrop-blur-md shadow-sm">
+            {PRODUCT_CARDS.map((card, i) => (
+              <button
+                key={card.spec}
+                onClick={() => selectCard(i)}
+                className={`px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                  activeCard === i
+                    ? 'bg-[#102A30] text-white shadow-md'
+                    : 'text-[#58747A] hover:text-[#102A30] hover:bg-[#E7F7F6]/60'
+                }`}
+              >
+                {card.spec}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Dynamic Showcase Feature Card on the Left */}
+        <div className="w-full max-w-lg my-auto pointer-events-auto">
+          <div className="relative bg-[#F8FEFD]/90 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-[#CDEEEF] shadow-[0_20px_60px_rgba(16,42,48,0.08)] overflow-hidden transition-all duration-500">
+            <CornerMarks />
+            
+            {/* Ambient Card Back Glow */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#CDEEEF]/50 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Card Progress Bars */}
+            <div className="flex items-center gap-1.5 mb-6">
+              {PRODUCT_CARDS.map((_, idx) => (
+                <div 
+                  key={idx}
+                  onClick={() => selectCard(idx)}
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    activeCard === idx 
+                      ? 'w-10 bg-[#287F91]' 
+                      : 'w-4 bg-[#CDEEEF] hover:bg-[#72BDCE]'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] text-[#287F91] text-[10px] font-mono tracking-widest uppercase font-bold">
+                <Icon className="w-3.5 h-3.5" />
+                <span>{current.badge}</span>
+              </div>
+              <span className="font-mono text-xs font-black text-[#58747A]/70">0{activeCard + 1} / 04</span>
+            </div>
+
+            <h3 className="font-black italic uppercase text-3xl sm:text-4xl text-[#102A30] tracking-tight mb-2">
+              {current.title}
+            </h3>
+
+            <div className="text-xs font-mono tracking-widest text-[#287F91] font-bold uppercase mb-4">
+              ✦ {current.highlight}
+            </div>
+
+            <p className="text-sm text-[#58747A] font-light leading-relaxed mb-8">
+              {current.desc}
+            </p>
+
+            {/* Bottom Metrics and Controls */}
+            <div className="flex justify-between items-end pt-6 border-t border-[#CDEEEF]/70">
+              <div>
+                <div className="text-3xl font-mono font-black text-[#102A30]">{current.metric}</div>
+                <div className="text-[10px] text-[#58747A] uppercase tracking-wider font-semibold mt-0.5">{current.sub}</div>
+              </div>
+
+              {/* Arrow Controls */}
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => selectCard((activeCard - 1 + PRODUCT_CARDS.length) % PRODUCT_CARDS.length)}
+                  className="w-10 h-10 rounded-full border border-[#CDEEEF] bg-white/80 hover:bg-[#102A30] hover:text-white text-[#102A30] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm"
+                  aria-label="Previous feature"
+                >
+                  ←
+                </button>
+                <button
+                  onClick={() => selectCard((activeCard + 1) % PRODUCT_CARDS.length)}
+                  className="w-10 h-10 rounded-full border border-[#CDEEEF] bg-[#102A30] text-white hover:bg-[#287F91] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm"
+                  aria-label="Next feature"
+                >
+                  →
+                </button>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Spec 2: PREMIUM GLASS */}
-        <div 
-          className="absolute top-[20%] right-[5%] md:right-[12%] group transition-all text-right"
-          onMouseEnter={() => setHoveredSpec('glass')}
-          onMouseLeave={() => setHoveredSpec(null)}
-        >
-          <div className="flex items-center justify-end gap-3">
-            <div className="p-3 rounded-xl bg-white/70 border border-[#CDEEEF]/60 backdrop-blur-sm shadow-sm text-left">
-              <div className="text-[10px] text-[#58747A] tracking-wider uppercase font-semibold">Casing</div>
-              <div className="font-bold text-base text-[#102A30]">CRYSTAL GLASS</div>
-            </div>
-            <div className="h-[1px] w-8 md:w-16 bg-[#287F91]/50 group-hover:bg-[#287F91] transition-colors" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#287F91] inline-block shadow-[0_0_10px_#287F91]" />
-          </div>
-        </div>
-
-        {/* Spec 3: BALANCED MINERALS */}
-        <div 
-          className="absolute bottom-[30%] left-[5%] md:left-[15%] group transition-all"
-          onMouseEnter={() => setHoveredSpec('minerals')}
-          onMouseLeave={() => setHoveredSpec(null)}
-        >
-          <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#287F91] inline-block shadow-[0_0_10px_#287F91]" />
-            <div className="h-[1px] w-8 md:w-16 bg-[#287F91]/50 group-hover:bg-[#287F91] transition-colors" />
-            <div className="p-3 rounded-xl bg-white/70 border border-[#CDEEEF]/60 backdrop-blur-sm shadow-sm">
-              <div className="text-[10px] text-[#58747A] tracking-wider uppercase font-semibold">Infusion</div>
-              <div className="font-bold text-base text-[#102A30]">IONS & MINERALS</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Spec 4: REFRACTION */}
-        <div 
-          className="absolute bottom-[20%] right-[5%] md:right-[15%] group transition-all text-right"
-          onMouseEnter={() => setHoveredSpec('refraction')}
-          onMouseLeave={() => setHoveredSpec(null)}
-        >
-          <div className="flex items-center justify-end gap-3">
-            <div className="p-3 rounded-xl bg-white/70 border border-[#CDEEEF]/60 backdrop-blur-sm shadow-sm text-left">
-              <div className="text-[10px] text-[#58747A] tracking-wider uppercase font-semibold">Ionisation</div>
-              <div className="font-bold text-base text-[#102A30]">pH 8.5+ ALKALINE</div>
-            </div>
-            <div className="h-[1px] w-8 md:w-16 bg-[#287F91]/50 group-hover:bg-[#287F91] transition-colors" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#287F91] inline-block animate-pulse shadow-[0_0_10px_#287F91]" />
-          </div>
-        </div>
-      </div>
-
-      <div className="text-center text-xs font-mono text-[#58747A] pointer-events-auto">
-        ✦ INTERACTIVE 3D VIEWPORT · DRAG DIRECTLY ON THE BOTTLE TO EXAMINE
       </div>
     </section>
   );
@@ -425,12 +501,6 @@ export function FinalSection({ onOpenContact }: FinalSectionProps) {
       className="section-block w-full min-h-screen flex flex-col justify-center items-center px-6 md:px-16 lg:px-24 py-16 relative z-20 text-center"
     >
       <div className="max-w-4xl pointer-events-auto flex flex-col items-center">
-        <span className="text-xs tracking-[0.3em] font-bold text-[#287F91] uppercase block mb-6 flex items-center gap-4">
-          <span className="w-8 md:w-16 h-[1px] bg-[#287F91]/50" />
-          06 / TRANSFORMATION
-          <span className="w-8 md:w-16 h-[1px] bg-[#287F91]/50" />
-        </span>
-        
         <h2 className="font-black italic uppercase leading-[0.9] tracking-tighter text-6xl sm:text-7xl md:text-9xl text-transparent bg-clip-text bg-gradient-to-br from-[#102A30] via-[#1A4550] to-[#287F91] text-wrap-balance mb-8 filter drop-shadow-sm">
           PURE WATER.<br />
           CLEARER TOMORROW.

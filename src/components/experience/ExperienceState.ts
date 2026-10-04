@@ -8,6 +8,7 @@ export interface ExperienceState {
   targetDragYRotation: number;
   isDragging: boolean;
   activeProcessStage: number; // 0 to 3 for the process stages
+  activeProductCard: number; // 0 to 3 for the rotating product cards
   loadingProgress: number; // 0 to 100
   isLoaded: boolean;
   reducedMotion: boolean;
@@ -22,6 +23,7 @@ export const expState: ExperienceState = {
   targetDragYRotation: 0,
   isDragging: false,
   activeProcessStage: 0,
+  activeProductCard: 0,
   loadingProgress: 0,
   isLoaded: false,
   reducedMotion: false,

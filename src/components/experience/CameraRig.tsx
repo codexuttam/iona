@@ -34,6 +34,13 @@ const BOTTLE_ROT_TARGETS = [
   new THREE.Vector3(0, 0, 0),            // Final: Facing forward
 ];
 
+const PRODUCT_CARD_OFFSETS = [
+  { pos: new THREE.Vector3(0.75, -0.3, 0.2), rot: new THREE.Vector3(0.04, 0.12, -0.02) },
+  { pos: new THREE.Vector3(0.68, -0.22, 0.35), rot: new THREE.Vector3(0.08, 0.42, -0.05) },
+  { pos: new THREE.Vector3(0.75, -0.28, 0.25), rot: new THREE.Vector3(-0.06, -0.28, 0.04) },
+  { pos: new THREE.Vector3(0.68, -0.16, 0.42), rot: new THREE.Vector3(0.14, 0.10, -0.03) },
+];
+
 export default function CameraRig() {
   const { camera, scene } = useThree();
 
@@ -64,6 +71,13 @@ export default function CameraRig() {
       BOTTLE_ROT_TARGETS[index + 1],
       fraction
     );
+
+    // Dynamic rotation & framing based on active product card when in Product Section
+    if (expState.currentSection === 5 && PRODUCT_CARD_OFFSETS[expState.activeProductCard]) {
+      const cardTarget = PRODUCT_CARD_OFFSETS[expState.activeProductCard];
+      targetBottlePos.current.lerp(cardTarget.pos, 0.8);
+      targetBottleRot.current.lerp(cardTarget.rot, 0.8);
+    }
 
     let lerpSpeed = expState.reducedMotion ? 0.2 : 0.085;
 

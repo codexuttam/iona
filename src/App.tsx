@@ -6,7 +6,6 @@ import Lenis from 'lenis';
 import { updateState, subscribeToState } from './components/experience/ExperienceState';
 import Experience from './components/experience/Experience';
 import Navbar from './components/navigation/Navbar';
-import SideProgress from './components/navigation/SideProgress';
 import Footer from './components/navigation/Footer';
 import Loader from './components/ui/Loader';
 import ContactModal from './components/modals/ContactModal';
@@ -277,9 +276,6 @@ export default function App() {
 
         {/* Brand Header Navigation */}
         <Navbar onOpenModal={(type) => setActiveModal(type)} />
-
-        {/* Left Side Navigation Progress */}
-        <SideProgress />
 
         {/* DOM Storytelling Layout (z-indexed above the Canvas) */}
         <main className="relative z-20 flex flex-col w-full">
