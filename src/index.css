@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* Lenis Smooth Scroll Recommended Integrations */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Custom fonts styling & fluid container scroll styles */
+.section-block {
+  content-visibility: auto;
+}
+
+/* Prevent text-wrap rendering layout shifts */
+h1, h2 {
+  text-wrap: balance;
+}
+
+/* Magnetic buttons and cursor targets active indicators */
+.magnetic-target {
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}

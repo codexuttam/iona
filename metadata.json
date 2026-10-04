@@ -1,0 +1,6 @@
+{
+  "name": "IONA - Premium Alkaline & Ionised Water",
+  "description": "Experience IONA - a premium immersive 3D experience of pure, balanced, and ionised water. Designed for clarity.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
