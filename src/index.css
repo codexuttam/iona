@@ -37,3 +37,28 @@ h1, h2 {
   position: relative;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Luxury Modal Scrollbar */
+.modal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(40, 127, 145, 0.45) rgba(205, 238, 239, 0.15);
+}
+
+.modal-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: rgba(205, 238, 239, 0.15);
+  border-radius: 9999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(40, 127, 145, 0.45);
+  border-radius: 9999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(40, 127, 145, 0.8);
+}
+

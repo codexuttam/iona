@@ -80,6 +80,18 @@ export default function App() {
     };
   }, []);
 
+  // Lock body scroll when any modal is open to ensure modal scrolls smoothly
+  useEffect(() => {
+    if (activeModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [activeModal]);
+
   useEffect(() => {
     if (!isLoaded) return;
 

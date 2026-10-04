@@ -9,15 +9,21 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 md:p-10 pointer-events-auto select-auto">
+    <div 
+      data-lenis-prevent="true"
+      className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 md:p-10 pointer-events-auto select-auto overflow-y-auto"
+    >
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-[#08171B]/80 backdrop-blur-2xl transition-opacity animate-in fade-in duration-500"
+        className="fixed inset-0 bg-[#08171B]/80 backdrop-blur-2xl transition-opacity animate-in fade-in duration-500"
         onClick={onClose}
       />
 
       {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-gradient-to-b from-[#F8FEFD] to-[#EDFAF9] rounded-3xl p-6 sm:p-10 md:p-12 shadow-[0_25px_70px_rgba(16,42,48,0.35)] border border-[#CDEEEF] animate-in zoom-in-95 duration-400 fade-in slide-in-from-bottom-6">
+      <div 
+        data-lenis-prevent="true"
+        className="relative w-full max-w-3xl my-auto max-h-[86vh] overflow-y-auto overscroll-contain modal-scrollbar bg-gradient-to-b from-[#F8FEFD] to-[#EDFAF9] rounded-3xl p-6 sm:p-10 md:p-12 shadow-[0_25px_70px_rgba(16,42,48,0.35)] border border-[#CDEEEF] animate-in zoom-in-95 duration-400 fade-in slide-in-from-bottom-6 z-10"
+      >
         
         {/* Glow Effects */}
         <div className="absolute -top-32 -right-32 w-72 h-72 bg-[#CDEEEF]/60 rounded-full blur-3xl pointer-events-none" />

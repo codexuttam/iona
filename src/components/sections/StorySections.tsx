@@ -461,15 +461,21 @@ export function FinalSection({ onOpenContact }: FinalSectionProps) {
 
       {/* Premium Exclusive Access Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 pointer-events-auto">
+        <div 
+          data-lenis-prevent="true"
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 pointer-events-auto overflow-y-auto"
+        >
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-[#0A1A1E]/80 backdrop-blur-xl transition-opacity animate-in fade-in duration-500"
+            className="fixed inset-0 bg-[#0A1A1E]/80 backdrop-blur-xl transition-opacity animate-in fade-in duration-500"
             onClick={() => setShowModal(false)}
           />
           
           {/* Modal Content */}
-          <div className="relative w-full max-w-md bg-gradient-to-b from-[#F8FEFD] to-[#E7F7F6] rounded-3xl p-8 sm:p-12 shadow-2xl border border-[#CDEEEF] animate-in zoom-in-95 duration-500 fade-in slide-in-from-bottom-8 overflow-hidden">
+          <div 
+            data-lenis-prevent="true"
+            className="relative w-full max-w-md my-auto max-h-[90vh] overflow-y-auto overscroll-contain modal-scrollbar bg-gradient-to-b from-[#F8FEFD] to-[#E7F7F6] rounded-3xl p-8 sm:p-12 shadow-2xl border border-[#CDEEEF] animate-in zoom-in-95 duration-500 fade-in slide-in-from-bottom-8 overflow-hidden z-10"
+          >
             {/* Subtle background glow */}
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#CDEEEF] rounded-full blur-3xl opacity-50 pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#72BDCE] rounded-full blur-3xl opacity-20 pointer-events-none" />
