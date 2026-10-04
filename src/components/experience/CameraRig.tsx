@@ -9,7 +9,7 @@ const CAMERA_TARGETS = [
   new THREE.Vector3(-0.5, 0.15, 4.9), // Alkaline (Section 2)
   new THREE.Vector3(0.6, 0.2, 4.7),   // Ionised (Section 3)
   new THREE.Vector3(-0.7, 0.15, 4.9), // Process (Section 4)
-  new THREE.Vector3(0, 0, 3.8),       // Product (Section 5)
+  new THREE.Vector3(0, 0, 4.4),       // Product (Section 5)
   new THREE.Vector3(0, 0.15, 5.5),    // Final (Section 6)
 ];
 
@@ -19,7 +19,7 @@ const BOTTLE_POS_TARGETS = [
   new THREE.Vector3(-0.85, -0.15, 0),  // Alkaline (left)
   new THREE.Vector3(0.9, 0.05, -0.2),  // Ionised (right)
   new THREE.Vector3(-0.95, -0.15, 0),  // Process (left)
-  new THREE.Vector3(0, -0.3, 0.4),     // Product (centered)
+  new THREE.Vector3(1.0, -0.25, 0.2),  // Product (right side - perfectly clear of left cards)
   new THREE.Vector3(0, -0.35, 0),      // Final
 ];
 
@@ -30,15 +30,19 @@ const BOTTLE_ROT_TARGETS = [
   new THREE.Vector3(0.12, -0.30, 0.05),  // Alkaline: Slight 17° left
   new THREE.Vector3(-0.06, 0.22, -0.03), // Ionised: Subtle 12° right
   new THREE.Vector3(0.08, -0.20, 0.04),  // Process: Subtle 11° left - Brand ALWAYS visible!
-  new THREE.Vector3(0.04, 0.12, -0.02),  // Product: Hero angle
+  new THREE.Vector3(0.04, 0.08, -0.02),  // Product: Hero angle
   new THREE.Vector3(0, 0, 0),            // Final: Facing forward
 ];
 
 const PRODUCT_CARD_OFFSETS = [
-  { pos: new THREE.Vector3(0.75, -0.3, 0.2), rot: new THREE.Vector3(0.04, 0.12, -0.02) },
-  { pos: new THREE.Vector3(0.68, -0.22, 0.35), rot: new THREE.Vector3(0.08, 0.42, -0.05) },
-  { pos: new THREE.Vector3(0.75, -0.28, 0.25), rot: new THREE.Vector3(-0.06, -0.28, 0.04) },
-  { pos: new THREE.Vector3(0.68, -0.16, 0.42), rot: new THREE.Vector3(0.14, 0.10, -0.03) },
+  // Card 0: 750 ML - Full Front Profile with subtle micro-tilt
+  { pos: new THREE.Vector3(1.02, -0.25, 0.20), rot: new THREE.Vector3(0.04, 0.06, -0.02) },
+  // Card 1: Crystal Glass - Angled 28° to showcase crystal refractivity & caustics
+  { pos: new THREE.Vector3(0.94, -0.22, 0.30), rot: new THREE.Vector3(0.08, 0.44, -0.04) },
+  // Card 2: Ions & Minerals - Subtle counter-angle (-22°) highlighting mineral purity
+  { pos: new THREE.Vector3(1.02, -0.28, 0.22), rot: new THREE.Vector3(-0.06, -0.36, 0.03) },
+  // Card 3: pH 8.5+ Alkaline - Grand elevated 3/4 beauty perspective
+  { pos: new THREE.Vector3(0.95, -0.18, 0.35), rot: new THREE.Vector3(0.12, 0.22, -0.02) },
 ];
 
 export default function CameraRig() {
@@ -72,11 +76,28 @@ export default function CameraRig() {
       fraction
     );
 
-    // Dynamic rotation & framing based on active product card when in Product Section
-    if (expState.currentSection === 5 && PRODUCT_CARD_OFFSETS[expState.activeProductCard]) {
-      const cardTarget = PRODUCT_CARD_OFFSETS[expState.activeProductCard];
-      targetBottlePos.current.lerp(cardTarget.pos, 0.8);
-      targetBottleRot.current.lerp(cardTarget.rot, 0.8);
+    // Continuous dynamic rotation & framing in Product Section (Section 5)
+    if (expState.currentSection === 5) {
+      const p = Math.max(0, Math.min(3, expState.productScrollProgress ?? expState.activeProductCard));
+      const i0 = Math.min(2, Math.floor(p));
+      const i1 = Math.min(3, i0 + 1);
+      const f = p - i0;
+
+      const p0 = PRODUCT_CARD_OFFSETS[i0];
+      const p1 = PRODUCT_CARD_OFFSETS[i1];
+
+      const interpolatedPos = new THREE.Vector3().lerpVectors(p0.pos, p1.pos, f);
+      const interpolatedRot = new THREE.Vector3().lerpVectors(p0.rot, p1.rot, f);
+
+      // On narrow / mobile screens, shift bottle closer to center so it doesn't clip
+      const isMobile = state.viewport.width < 5.5;
+      if (isMobile) {
+        interpolatedPos.x = 0;
+        interpolatedPos.y += 0.35;
+      }
+
+      targetBottlePos.current.lerp(interpolatedPos, 0.85);
+      targetBottleRot.current.lerp(interpolatedRot, 0.85);
     }
 
     let lerpSpeed = expState.reducedMotion ? 0.2 : 0.085;

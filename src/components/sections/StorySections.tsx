@@ -276,43 +276,55 @@ export function ProcessSection() {
 // SECTION 6: PRODUCT SHOWCASE WITH SCROLLING CARDS & SYNCHRONIZED BOTTLE ROTATION
 const PRODUCT_CARDS = [
   {
+    num: '01',
     spec: '750 ML',
     badge: 'ERGONOMIC CAPACITY',
     title: '750 ML VOLUME',
     highlight: 'OPTIMAL CELLULAR HYDRATION',
-    desc: 'Meticulously proportioned for daily cellular replenishment. Ergonomically balanced crystal weight engineered for fine dining hospitality and personal hydration rituals.',
-    metric: '750 ML',
-    sub: '25.4 FL OZ NET',
+    desc: 'Meticulously proportioned for complete daily cellular replenishment. Ergonomically calibrated crystal weight engineered for fine dining hospitality, executive spaces, and personal hydration rituals.',
+    metric: '750',
+    unit: 'ML',
+    sub: '25.4 FL OZ NET · BALANCED TARE WEIGHT',
+    tags: ['ERGONOMIC PUNT', 'PRECISION BORE CAP', 'CELLULAR SIZING'],
     icon: Droplet,
   },
   {
+    num: '02',
     spec: 'GLASS',
-    badge: 'CASING & INTEGRITY',
+    badge: 'CASING & PURITY',
     title: 'CRYSTAL GLASS',
     highlight: 'ZERO MICROPLASTICS · 100% INERT',
-    desc: '100% recyclable, medical-grade inert borosilicate glass casing. Non-porous surface protects molecular micro-clustering and eliminates thermal chemical leaching entirely.',
+    desc: '100% recyclable, medical-grade inert borosilicate crystal casing. Non-porous molecular surface protects natural ion structures and eliminates chemical leaching or UV degradation entirely.',
     metric: '100%',
-    sub: 'PURE INERT CASING',
+    unit: 'INERT',
+    sub: 'PHARMACEUTICAL CRUCIBLE · 0% RESIDUE',
+    tags: ['MEDICAL BOROSILICATE', 'UV RESISTANT', 'CIRCULAR LIFE'],
     icon: ShieldCheck,
   },
   {
+    num: '03',
     spec: 'MINERALS',
     badge: 'BIO-AVAILABILITY',
     title: 'IONS & MINERALS',
     highlight: 'VOLCANIC COMPLEX MATRIX',
-    desc: 'Naturally stabilized with bio-available ionic calcium, magnesium, and trace potassium. Delivers a clean, silky mouthfeel with superior cellular absorption.',
+    desc: 'Naturally stabilized with bio-available ionic calcium, magnesium, and trace potassium. Rapidly crosses cellular aquaporin channels for instantaneous intracellular absorption and cellular vitality.',
     metric: '72+',
-    sub: 'TRACE DISSOLVED IONS',
+    unit: 'IONS',
+    sub: 'TRACE DISSOLVED MINERALS · BIO-ACTIVE',
+    tags: ['IONIC MAGNESIUM', 'BIO-CALCIUM', 'RAPID CELLULAR UPTAKE'],
     icon: Zap,
   },
   {
+    num: '04',
     spec: 'ALKALINE',
-    badge: 'POURING ERGONOMICS',
-    title: 'FLAME-POLISHED LIP',
-    highlight: 'pH 8.5+ · PERFECT POUR',
-    desc: 'Heavy crystal base with concave punt refraction. Precision flame-polished lip bead ensures an effortless, smooth, spill-free pour into fine stemware.',
+    badge: 'POURING ARCHITECTURE',
+    title: 'pH 8.5+ ALKALINE',
+    highlight: 'SYSTEMIC CELLULAR BALANCE',
+    desc: 'Heavy crystal base with concave punt refraction. Precision flame-polished lip bead ensures an effortless, velvety spill-free pour into fine stemware while preserving natural negative ORP balance.',
     metric: '8.5+',
-    sub: 'ALKALINE pH BALANCE',
+    unit: 'pH',
+    sub: 'NEGATIVE ORP · FLAME-POLISHED LIP',
+    tags: ['FLAME-POLISHED LIP', 'VELVET PALATE', 'OPTIMAL -ORP'],
     icon: Sparkles,
   },
 ];
@@ -321,8 +333,8 @@ export function ProductSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [activeCard, setActiveCard] = useState(0);
 
-  // Scroll synchronization: scrolling through this section cycles through cards
-  // and rotates the bottle to showcase each feature!
+  // Scroll synchronization: scrolling through this section cycles through cards dynamically
+  // and continuously rotates the bottle to showcase each feature!
   useEffect(() => {
     const handleScroll = () => {
       if (!sectionRef.current) return;
@@ -331,26 +343,32 @@ export function ProductSection() {
       const totalDist = rect.height - windowH;
       if (totalDist <= 0) return;
 
-      const scrolled = -rect.top;
-      const fraction = Math.max(0, Math.min(0.999, scrolled / totalDist));
-      const cardIdx = Math.min(PRODUCT_CARDS.length - 1, Math.floor(fraction * PRODUCT_CARDS.length));
+      // Lock currentSection to 5 when user is inside or near the product section
+      if (rect.top <= windowH * 0.7 && rect.bottom >= windowH * 0.3) {
+        updateState({ currentSection: 5 });
+      }
 
-      setActiveCard((prev) => {
-        if (prev !== cardIdx) {
-          updateState({ activeProductCard: cardIdx });
-          return cardIdx;
-        }
-        return prev;
+      const scrolled = -rect.top;
+      const rawProgress = Math.max(0, Math.min(1, scrolled / totalDist));
+      const cardProgress = rawProgress * (PRODUCT_CARDS.length - 1);
+      const cardIdx = Math.min(PRODUCT_CARDS.length - 1, Math.floor(rawProgress * PRODUCT_CARDS.length));
+
+      updateState({
+        productScrollProgress: cardProgress,
+        activeProductCard: cardIdx,
       });
+
+      setActiveCard((prev) => (prev !== cardIdx ? cardIdx : prev));
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const selectCard = (index: number) => {
     setActiveCard(index);
-    updateState({ activeProductCard: index });
+    updateState({ activeProductCard: index, productScrollProgress: index, currentSection: 5 });
 
     if (sectionRef.current) {
       const rect = sectionRef.current.getBoundingClientRect();
@@ -363,37 +381,34 @@ export function ProductSection() {
     }
   };
 
-  const current = PRODUCT_CARDS[activeCard];
-  const Icon = current.icon;
-
   return (
     <section 
       ref={sectionRef}
       id="product"
       data-section-index="5"
-      className="section-block w-full min-h-[260vh] relative z-20 pointer-events-none"
+      className="section-block w-full min-h-[360vh] relative z-20 pointer-events-none"
     >
       {/* Sticky Viewport Container */}
-      <div className="sticky top-0 w-full h-screen flex flex-col justify-between px-6 md:px-16 lg:px-24 py-12 md:py-16">
+      <div className="sticky top-0 w-full h-screen flex flex-col justify-between px-6 md:px-16 lg:px-24 py-8 md:py-12 overflow-hidden">
         
         {/* Top Header & Feature Selector Tabs */}
-        <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pointer-events-auto">
+        <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pointer-events-auto">
           <div>
-            <h2 className="font-black italic uppercase leading-none tracking-tight text-5xl md:text-7xl text-[#102A30]">
+            <h2 className="font-black italic uppercase leading-none tracking-tight text-4xl sm:text-6xl md:text-7xl text-[#102A30]">
               THE IONA<br />
               BOTTLE.
             </h2>
           </div>
 
           {/* Feature Selector Tabs (Editorial Swiss Style) */}
-          <div className="flex flex-wrap items-center gap-2 bg-white/70 p-1.5 rounded-2xl border border-[#CDEEEF]/70 backdrop-blur-md shadow-sm">
+          <div className="flex flex-wrap items-center gap-1.5 bg-white/80 p-1.5 rounded-2xl border border-[#CDEEEF]/70 backdrop-blur-md shadow-sm">
             {PRODUCT_CARDS.map((card, i) => (
               <button
                 key={card.spec}
                 onClick={() => selectCard(i)}
-                className={`px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
                   activeCard === i
-                    ? 'bg-[#102A30] text-white shadow-md'
+                    ? 'bg-[#102A30] text-white shadow-md scale-102'
                     : 'text-[#58747A] hover:text-[#102A30] hover:bg-[#E7F7F6]/60'
                 }`}
               >
@@ -403,75 +418,138 @@ export function ProductSection() {
           </div>
         </div>
 
-        {/* Dynamic Showcase Feature Card on the Left */}
-        <div className="w-full max-w-lg my-auto pointer-events-auto">
-          <div className="relative bg-[#F8FEFD]/90 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-[#CDEEEF] shadow-[0_20px_60px_rgba(16,42,48,0.08)] overflow-hidden transition-all duration-500">
-            <CornerMarks />
+        {/* Dynamic Showcase Feature Cards Stack (Positioned on Left) */}
+        <div className="w-full lg:w-[48%] max-w-xl my-auto relative min-h-[460px] pointer-events-auto">
+          {PRODUCT_CARDS.map((card, i) => {
+            const Icon = card.icon;
+            const isActive = activeCard === i;
+            const isPast = i < activeCard;
             
-            {/* Ambient Card Back Glow */}
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#CDEEEF]/50 rounded-full blur-3xl pointer-events-none" />
+            return (
+              <div
+                key={card.spec}
+                className={`absolute inset-0 w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                  isActive
+                    ? 'opacity-100 translate-y-0 scale-100 blur-0 pointer-events-auto z-10'
+                    : isPast
+                    ? 'opacity-0 -translate-y-8 scale-95 blur-sm pointer-events-none z-0'
+                    : 'opacity-0 translate-y-8 scale-95 blur-sm pointer-events-none z-0'
+                }`}
+              >
+                <div className="relative bg-gradient-to-br from-white/95 via-white/85 to-[#E7F7F6]/90 backdrop-blur-3xl p-7 sm:p-10 rounded-3xl border border-white/90 shadow-[0_25px_80px_rgba(16,42,48,0.12),0_0_1px_1px_rgba(255,255,255,0.95)_inset,0_10px_30px_rgba(40,127,145,0.08)] overflow-hidden">
+                  <CornerMarks />
+                  
+                  {/* Subtle Top Specular Light Beam */}
+                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#287F91]/50 to-transparent pointer-events-none" />
 
-            {/* Card Progress Bars */}
-            <div className="flex items-center gap-1.5 mb-6">
-              {PRODUCT_CARDS.map((_, idx) => (
-                <div 
-                  key={idx}
-                  onClick={() => selectCard(idx)}
-                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                    activeCard === idx 
-                      ? 'w-10 bg-[#287F91]' 
-                      : 'w-4 bg-[#CDEEEF] hover:bg-[#72BDCE]'
+                  {/* Ambient Card Back Glow */}
+                  <div className="absolute -top-24 -right-24 w-52 h-52 bg-[#CDEEEF]/40 rounded-full blur-3xl pointer-events-none" />
+
+                  {/* Step Progress & Tag */}
+                  <div className="flex justify-between items-center mb-5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] border border-[#CDEEEF]/60 text-[#287F91] text-[10px] font-mono tracking-widest uppercase font-bold shadow-xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#287F91] animate-pulse" />
+                      <Icon className="w-3.5 h-3.5 text-[#287F91]" />
+                      <span>{card.badge}</span>
+                    </div>
+                    <span className="font-mono text-xs font-black text-[#58747A]/80 tracking-wider">
+                      {card.num} / 04
+                    </span>
+                  </div>
+
+                  {/* Card Title */}
+                  <h3 className="font-black italic uppercase text-2xl sm:text-4xl text-[#102A30] tracking-tight mb-1.5">
+                    {card.title}
+                  </h3>
+
+                  {/* Highlight */}
+                  <div className="text-xs font-mono tracking-widest text-[#287F91] font-bold uppercase mb-4 flex items-center gap-1.5">
+                    <span className="text-[#287F91]">✦</span> {card.highlight}
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-xs sm:text-sm text-[#58747A] font-light leading-relaxed mb-5">
+                    {card.desc}
+                  </p>
+
+                  {/* Micro Feature Tags */}
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-6 sm:mb-8">
+                    {card.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2.5 py-1 rounded-lg bg-white/70 border border-[#CDEEEF]/50 text-[10px] font-mono font-medium text-[#287F91] tracking-wider uppercase"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Bottom Metrics and Controls */}
+                  <div className="flex justify-between items-end pt-5 sm:pt-6 border-t border-[#CDEEEF]/60">
+                    <div>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-3xl sm:text-4xl font-mono font-black text-[#102A30] tracking-tight">
+                          {card.metric}
+                        </span>
+                        <span className="text-xs sm:text-sm font-mono font-bold text-[#287F91]">
+                          {card.unit}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-[#58747A] uppercase tracking-wider font-semibold mt-1">
+                        {card.sub}
+                      </div>
+                    </div>
+
+                    {/* Arrow Controls */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => selectCard((i - 1 + PRODUCT_CARDS.length) % PRODUCT_CARDS.length)}
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#CDEEEF] bg-white/80 hover:bg-[#102A30] hover:text-white text-[#102A30] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                        aria-label="Previous feature"
+                      >
+                        ←
+                      </button>
+                      <button
+                        onClick={() => selectCard((i + 1) % PRODUCT_CARDS.length)}
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#CDEEEF] bg-[#102A30] text-white hover:bg-[#287F91] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                        aria-label="Next feature"
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Sleek Minimalist Progress Segments */}
+        <div className="w-full max-w-xl flex items-center gap-2 pointer-events-auto py-1">
+          {PRODUCT_CARDS.map((card, idx) => (
+            <button
+              key={card.spec}
+              onClick={() => selectCard(idx)}
+              className="flex-1 flex flex-col gap-1 text-left cursor-pointer group"
+            >
+              <div className="w-full h-1 rounded-full bg-[#CDEEEF]/60 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    activeCard === idx
+                      ? 'w-full bg-[#287F91]'
+                      : idx < activeCard
+                      ? 'w-full bg-[#102A30]'
+                      : 'w-0 bg-transparent'
                   }`}
                 />
-              ))}
-            </div>
-
-            <div className="flex justify-between items-center mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] text-[#287F91] text-[10px] font-mono tracking-widest uppercase font-bold">
-                <Icon className="w-3.5 h-3.5" />
-                <span>{current.badge}</span>
               </div>
-              <span className="font-mono text-xs font-black text-[#58747A]/70">0{activeCard + 1} / 04</span>
-            </div>
-
-            <h3 className="font-black italic uppercase text-3xl sm:text-4xl text-[#102A30] tracking-tight mb-2">
-              {current.title}
-            </h3>
-
-            <div className="text-xs font-mono tracking-widest text-[#287F91] font-bold uppercase mb-4">
-              ✦ {current.highlight}
-            </div>
-
-            <p className="text-sm text-[#58747A] font-light leading-relaxed mb-8">
-              {current.desc}
-            </p>
-
-            {/* Bottom Metrics and Controls */}
-            <div className="flex justify-between items-end pt-6 border-t border-[#CDEEEF]/70">
-              <div>
-                <div className="text-3xl font-mono font-black text-[#102A30]">{current.metric}</div>
-                <div className="text-[10px] text-[#58747A] uppercase tracking-wider font-semibold mt-0.5">{current.sub}</div>
-              </div>
-
-              {/* Arrow Controls */}
-              <div className="flex gap-1.5">
-                <button
-                  onClick={() => selectCard((activeCard - 1 + PRODUCT_CARDS.length) % PRODUCT_CARDS.length)}
-                  className="w-10 h-10 rounded-full border border-[#CDEEEF] bg-white/80 hover:bg-[#102A30] hover:text-white text-[#102A30] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm"
-                  aria-label="Previous feature"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={() => selectCard((activeCard + 1) % PRODUCT_CARDS.length)}
-                  className="w-10 h-10 rounded-full border border-[#CDEEEF] bg-[#102A30] text-white hover:bg-[#287F91] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm"
-                  aria-label="Next feature"
-                >
-                  →
-                </button>
-              </div>
-            </div>
-          </div>
+              <span className={`text-[10px] font-mono tracking-wider font-semibold transition-colors ${
+                activeCard === idx ? 'text-[#102A30]' : 'text-[#58747A]/60 group-hover:text-[#58747A]'
+              }`}>
+                0{idx + 1} {card.spec}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
     </section>
