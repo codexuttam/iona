@@ -3,12 +3,15 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 
-import { expState, updateState, subscribeToState } from './components/experience/ExperienceState';
+import { updateState, subscribeToState } from './components/experience/ExperienceState';
 import Experience from './components/experience/Experience';
 import Navbar from './components/navigation/Navbar';
 import SideProgress from './components/navigation/SideProgress';
 import Footer from './components/navigation/Footer';
 import Loader from './components/ui/Loader';
+import ContactModal from './components/modals/ContactModal';
+import PrivacyModal from './components/modals/PrivacyModal';
+import TermsModal from './components/modals/TermsModal';
 import {
   HeroSection,
   WaterSection,
@@ -25,6 +28,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [activeModal, setActiveModal] = useState<'contact' | 'privacy' | 'terms' | null>(null);
 
   useEffect(() => {
     // 1. Accessibility: Detect user motion preference
@@ -38,7 +42,6 @@ export default function App() {
 
     // 2. Mouse position tracking for cursor interactivity
     const handleMouseMove = (e: MouseEvent) => {
-      // Map coordinates to range [-1, 1]
       const targetX = (e.clientX / window.innerWidth) * 2 - 1;
       const targetY = -(e.clientY / window.innerHeight) * 2 + 1;
       
@@ -58,50 +61,57 @@ export default function App() {
       setIsLoaded(state.isLoaded);
     });
 
+    // 4. Listen to URL hash changes for deep linking to modal pages (#contact, #privacy, #terms)
+    const checkHash = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#contact') setActiveModal('contact');
+      else if (hash === '#privacy') setActiveModal('privacy');
+      else if (hash === '#terms') setActiveModal('terms');
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+
     return () => {
       mediaQuery.removeEventListener('change', handleMotionChange);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('hashchange', checkHash);
       unsubscribe();
     };
   }, []);
 
   useEffect(() => {
-    // Setup animations only once the app is loaded and DOM elements exist
     if (!isLoaded) return;
 
-    // 4. Initialize Lenis Smooth Scrolling
+    // 5. Initialize Lenis Smooth Scrolling
     const lenis = new Lenis({
-      duration: 1.4, // Fluid cinematic dampening
+      duration: 1.4,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
     });
 
-    // Update ScrollTrigger on Lenis scroll
     lenis.on('scroll', ScrollTrigger.update);
 
-    // Coordinate GSAP and Lenis ticker frames
     const gsapTicker = (time: number) => {
       lenis.raf(time * 1000);
     };
     gsap.ticker.add(gsapTicker);
     gsap.ticker.lagSmoothing(0);
 
-    // 5. Establish ScrollTrigger synchronization with our 3D State
+    // 6. ScrollTrigger synchronization with 3D State
     const scrollST = ScrollTrigger.create({
       trigger: containerRef.current,
       start: 'top top',
       end: 'bottom bottom',
       scrub: 0.8,
       onUpdate: (self) => {
-        const progress = self.progress; // 0 to 1
+        const progress = self.progress;
         const totalSections = 7;
         const val = progress * (totalSections - 1);
         const sectionIndex = Math.min(Math.floor(val), totalSections - 1);
         const sectionProgress = val - sectionIndex;
 
-        // Populate state values
         const progresses = Array(totalSections).fill(0);
         progresses[sectionIndex] = sectionProgress;
         
@@ -113,8 +123,7 @@ export default function App() {
       },
     });
 
-    // 6. Smooth Background Color Choreography Timeline
-    // Colors evolve gradually throughout the scroll
+    // 7. Smooth Background Color Choreography Timeline
     const bgTimeline = gsap.timeline({
       scrollTrigger: {
         trigger: containerRef.current,
@@ -125,16 +134,15 @@ export default function App() {
     });
 
     bgTimeline
-      .to(containerRef.current, { backgroundColor: '#EFFAF9', ease: 'none', duration: 1 }) // Section 1 (Water)
-      .to(containerRef.current, { backgroundColor: '#E5F7F6', ease: 'none', duration: 1 }) // Section 2 (Alkaline)
-      .to(containerRef.current, { backgroundColor: '#D6F1F2', ease: 'none', duration: 1 }) // Section 3 (Ionised)
-      .to(containerRef.current, { backgroundColor: '#C5E9ED', ease: 'none', duration: 1 }) // Section 4 (Process)
-      .to(containerRef.current, { backgroundColor: '#B6E2E9', ease: 'none', duration: 1 }) // Section 5 (Product)
-      .to(containerRef.current, { backgroundColor: '#F7FCFC', ease: 'none', duration: 1 }); // Section 6 (Final)
+      .to(containerRef.current, { backgroundColor: '#EFFAF9', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#E5F7F6', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#D6F1F2', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#C5E9ED', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#B6E2E9', ease: 'none', duration: 1 })
+      .to(containerRef.current, { backgroundColor: '#F7FCFC', ease: 'none', duration: 1 });
 
-    // 7. Cinematic DOM Elements Scroll Animation
+    // 8. Cinematic DOM Elements Scroll Animation
     const sectionIds = ['#hero', '#water', '#alkaline', '#ionised', '#process', '#product', '#final'];
-    const activeSTs: ScrollTrigger[] = [];
 
     sectionIds.forEach((id) => {
       const sec = document.querySelector(id);
@@ -144,7 +152,6 @@ export default function App() {
       const paragraph = sec.querySelector('p');
       const extraCards = sec.querySelectorAll('.p-4, .p-5, .relative > div');
 
-      // Animating the heading with dynamic clip-path reveal + translateY + blur
       if (heading) {
         gsap.fromTo(
           heading,
@@ -170,7 +177,6 @@ export default function App() {
         );
       }
 
-      // Animating paragraphs
       if (paragraph) {
         gsap.fromTo(
           paragraph,
@@ -193,7 +199,6 @@ export default function App() {
         );
       }
 
-      // Animating inner details cards (for process and specs)
       if (extraCards.length > 0) {
         gsap.fromTo(
           extraCards,
@@ -219,7 +224,6 @@ export default function App() {
       }
     });
 
-    // Cleanup functions
     return () => {
       lenis.destroy();
       gsap.ticker.remove(gsapTicker);
@@ -229,10 +233,22 @@ export default function App() {
     };
   }, [isLoaded]);
 
+  const handleCloseModal = () => {
+    setActiveModal(null);
+    if (['#contact', '#privacy', '#terms'].includes(window.location.hash.toLowerCase())) {
+      history.pushState(null, '', window.location.pathname);
+    }
+  };
+
   return (
     <>
-      {/* Luxury Loading Screen */}
+      {/* 4K Ciao Energy Inspired Luxury Loading Screen */}
       <Loader />
+
+      {/* Luxury Modals & Pages */}
+      <ContactModal isOpen={activeModal === 'contact'} onClose={handleCloseModal} />
+      <PrivacyModal isOpen={activeModal === 'privacy'} onClose={handleCloseModal} />
+      <TermsModal isOpen={activeModal === 'terms'} onClose={handleCloseModal} />
 
       {/* Main Orchestration Wrapper */}
       <div 
@@ -244,7 +260,7 @@ export default function App() {
         <Experience />
 
         {/* Brand Header Navigation */}
-        <Navbar />
+        <Navbar onOpenModal={(type) => setActiveModal(type)} />
 
         {/* Left Side Navigation Progress */}
         <SideProgress />
@@ -257,11 +273,11 @@ export default function App() {
           <IonisedSection />
           <ProcessSection />
           <ProductSection />
-          <FinalSection />
+          <FinalSection onOpenContact={() => setActiveModal('contact')} />
         </main>
 
-        {/* Footer */}
-        <Footer />
+        {/* Footer with modal triggers */}
+        <Footer onOpenModal={(type) => setActiveModal(type)} />
       </div>
     </>
   );
