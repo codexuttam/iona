@@ -10,6 +10,7 @@ export interface ExperienceState {
   activeProcessStage: number; // 0 to 3 for the process stages
   activeProductCard: number; // 0 to 3 for the rotating product cards
   productScrollProgress: number; // 0 to 3 continuous float for fluid bottle rotation
+  productActive: boolean; // true while the pinned product showcase is on screen
   loadingProgress: number; // 0 to 100
   isLoaded: boolean;
   reducedMotion: boolean;
@@ -26,6 +27,7 @@ export const expState: ExperienceState = {
   activeProcessStage: 0,
   activeProductCard: 0,
   productScrollProgress: 0,
+  productActive: false,
   loadingProgress: 0,
   isLoaded: false,
   reducedMotion: false,

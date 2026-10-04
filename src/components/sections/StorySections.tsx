@@ -1,7 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { updateState, expState, subscribeToState } from '../experience/ExperienceState';
 import MagneticButton from '../ui/MagneticButton';
 import { ChevronDown, ArrowRight, ShieldCheck, Zap, Droplet, Sparkles, X, Check, Droplets } from 'lucide-react';
+
+gsap.registerPlugin(ScrollTrigger);
 
 // Ciao Energy Technical Corner Marks Helper
 function CornerMarks() {
@@ -331,53 +335,55 @@ const PRODUCT_CARDS = [
 
 export function ProductSection() {
   const sectionRef = useRef<HTMLElement>(null);
+  const pinRef = useRef<HTMLDivElement>(null);
   const [activeCard, setActiveCard] = useState(0);
 
-  // Scroll synchronization: scrolling through this section cycles through cards dynamically
-  // and continuously rotates the bottle to showcase each feature!
+  // GSAP ScrollTrigger Pinned Showcase:
+  // Pins the viewport container rock-solid in place while the user scrolls down,
+  // cycling through cards dynamically one-by-one and revolving the 3D bottle!
   useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      const totalDist = rect.height - windowH;
-      if (totalDist <= 0) return;
+    if (!sectionRef.current || !pinRef.current) return;
 
-      // Lock currentSection to 5 when user is inside or near the product section
-      if (rect.top <= windowH * 0.7 && rect.bottom >= windowH * 0.3) {
-        updateState({ currentSection: 5 });
-      }
+    const st = ScrollTrigger.create({
+      id: 'product-showcase-pin',
+      trigger: sectionRef.current,
+      pin: pinRef.current,
+      start: 'top top',
+      end: '+=2400',
+      scrub: 0.5,
+      anticipatePin: 1,
+      onToggle: (self) => {
+        updateState({ productActive: self.isActive });
+      },
+      onUpdate: (self) => {
+        const rawProgress = Math.max(0, Math.min(0.999, self.progress));
+        const cardProgress = rawProgress * 3;
+        const cardIdx = Math.min(PRODUCT_CARDS.length - 1, Math.floor(rawProgress * PRODUCT_CARDS.length));
 
-      const scrolled = -rect.top;
-      const rawProgress = Math.max(0, Math.min(1, scrolled / totalDist));
-      const cardProgress = rawProgress * (PRODUCT_CARDS.length - 1);
-      const cardIdx = Math.min(PRODUCT_CARDS.length - 1, Math.floor(rawProgress * PRODUCT_CARDS.length));
+        updateState({
+          productActive: true,
+          productScrollProgress: cardProgress,
+          activeProductCard: cardIdx,
+        });
 
-      updateState({
-        productScrollProgress: cardProgress,
-        activeProductCard: cardIdx,
-      });
+        setActiveCard((prev) => (prev !== cardIdx ? cardIdx : prev));
+      },
+    });
 
-      setActiveCard((prev) => (prev !== cardIdx ? cardIdx : prev));
+    return () => {
+      st.kill();
+      updateState({ productActive: false });
     };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const selectCard = (index: number) => {
     setActiveCard(index);
-    updateState({ activeProductCard: index, productScrollProgress: index, currentSection: 5 });
+    updateState({ activeProductCard: index, productScrollProgress: index, productActive: true });
 
-    if (sectionRef.current) {
-      const rect = sectionRef.current.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      const totalDist = rect.height - windowH;
-      if (totalDist > 0) {
-        const targetScrollY = window.scrollY + rect.top + (index / (PRODUCT_CARDS.length - 1)) * totalDist;
-        window.scrollTo({ top: targetScrollY, behavior: 'smooth' });
-      }
+    const st = ScrollTrigger.getById('product-showcase-pin');
+    if (st) {
+      const targetScroll = st.start + (index / (PRODUCT_CARDS.length - 1)) * (st.end - st.start);
+      window.scrollTo({ top: targetScroll, behavior: 'smooth' });
     }
   };
 
@@ -386,170 +392,176 @@ export function ProductSection() {
       ref={sectionRef}
       id="product"
       data-section-index="5"
-      className="section-block w-full min-h-[360vh] relative z-20 pointer-events-none"
+      className="w-full relative z-20 pointer-events-none"
     >
-      {/* Sticky Viewport Container */}
-      <div className="sticky top-0 w-full h-screen flex flex-col justify-between px-6 md:px-16 lg:px-24 py-8 md:py-12 overflow-hidden">
-        
-        {/* Top Header & Feature Selector Tabs */}
-        <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pointer-events-auto">
-          <div>
-            <h2 className="font-black italic uppercase leading-none tracking-tight text-4xl sm:text-6xl md:text-7xl text-[#102A30]">
-              THE IONA<br />
-              BOTTLE.
-            </h2>
+      {/* GSAP-Pinned Viewport Container (Centering cards and bottle) */}
+      <div 
+        ref={pinRef}
+        className="w-full h-screen flex flex-col justify-center px-6 md:px-16 lg:px-24 overflow-hidden relative pointer-events-none"
+      >
+        <div className="w-full max-w-7xl mx-auto flex flex-col justify-center gap-6">
+          
+          {/* Top Header & Feature Selector Tabs */}
+          <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pointer-events-auto">
+            <div>
+              <h2 className="font-black italic uppercase leading-none tracking-tight text-3xl sm:text-5xl md:text-6xl text-[#102A30]">
+                THE IONA<br />
+                BOTTLE.
+              </h2>
+            </div>
+
+            {/* Feature Selector Tabs */}
+            <div className="flex flex-wrap items-center gap-1.5 bg-white/85 p-1.5 rounded-2xl border border-[#CDEEEF]/70 backdrop-blur-md shadow-sm">
+              {PRODUCT_CARDS.map((card, i) => (
+                <button
+                  key={card.spec}
+                  onClick={() => selectCard(i)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                    activeCard === i
+                      ? 'bg-[#102A30] text-white shadow-md scale-102'
+                      : 'text-[#58747A] hover:text-[#102A30] hover:bg-[#E7F7F6]/60'
+                  }`}
+                >
+                  {card.spec}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Feature Selector Tabs (Editorial Swiss Style) */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-white/80 p-1.5 rounded-2xl border border-[#CDEEEF]/70 backdrop-blur-md shadow-sm">
-            {PRODUCT_CARDS.map((card, i) => (
-              <button
-                key={card.spec}
-                onClick={() => selectCard(i)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
-                  activeCard === i
-                    ? 'bg-[#102A30] text-white shadow-md scale-102'
-                    : 'text-[#58747A] hover:text-[#102A30] hover:bg-[#E7F7F6]/60'
-                }`}
-              >
-                {card.spec}
-              </button>
-            ))}
-          </div>
-        </div>
+          {/* Dynamic Showcase Feature Cards Stack (Positioned on Left) */}
+          <div className="w-full lg:w-[48%] max-w-lg relative h-[420px] pointer-events-auto">
+            {PRODUCT_CARDS.map((card, i) => {
+              const Icon = card.icon;
+              const isActive = activeCard === i;
+              const isPast = i < activeCard;
+              
+              return (
+                <div
+                  key={card.spec}
+                  className={`absolute inset-0 w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    isActive
+                      ? 'opacity-100 translate-y-0 scale-100 blur-0 pointer-events-auto z-10'
+                      : isPast
+                      ? 'opacity-0 -translate-y-8 scale-95 blur-sm pointer-events-none z-0'
+                      : 'opacity-0 translate-y-8 scale-95 blur-sm pointer-events-none z-0'
+                  }`}
+                >
+                  <div className="relative bg-gradient-to-br from-white/95 via-white/85 to-[#E7F7F6]/90 backdrop-blur-3xl p-6 sm:p-8 rounded-3xl border border-white/90 shadow-[0_20px_70px_rgba(16,42,48,0.12),0_0_1px_1px_rgba(255,255,255,0.95)_inset,0_10px_25px_rgba(40,127,145,0.08)] overflow-hidden">
+                    <CornerMarks />
+                    
+                    {/* Subtle Top Specular Light Beam */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#287F91]/50 to-transparent pointer-events-none" />
 
-        {/* Dynamic Showcase Feature Cards Stack (Positioned on Left) */}
-        <div className="w-full lg:w-[48%] max-w-xl my-auto relative min-h-[460px] pointer-events-auto">
-          {PRODUCT_CARDS.map((card, i) => {
-            const Icon = card.icon;
-            const isActive = activeCard === i;
-            const isPast = i < activeCard;
-            
-            return (
-              <div
-                key={card.spec}
-                className={`absolute inset-0 w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                  isActive
-                    ? 'opacity-100 translate-y-0 scale-100 blur-0 pointer-events-auto z-10'
-                    : isPast
-                    ? 'opacity-0 -translate-y-8 scale-95 blur-sm pointer-events-none z-0'
-                    : 'opacity-0 translate-y-8 scale-95 blur-sm pointer-events-none z-0'
-                }`}
-              >
-                <div className="relative bg-gradient-to-br from-white/95 via-white/85 to-[#E7F7F6]/90 backdrop-blur-3xl p-7 sm:p-10 rounded-3xl border border-white/90 shadow-[0_25px_80px_rgba(16,42,48,0.12),0_0_1px_1px_rgba(255,255,255,0.95)_inset,0_10px_30px_rgba(40,127,145,0.08)] overflow-hidden">
-                  <CornerMarks />
-                  
-                  {/* Subtle Top Specular Light Beam */}
-                  <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#287F91]/50 to-transparent pointer-events-none" />
+                    {/* Ambient Card Back Glow */}
+                    <div className="absolute -top-20 -right-20 w-48 h-48 bg-[#CDEEEF]/40 rounded-full blur-3xl pointer-events-none" />
 
-                  {/* Ambient Card Back Glow */}
-                  <div className="absolute -top-24 -right-24 w-52 h-52 bg-[#CDEEEF]/40 rounded-full blur-3xl pointer-events-none" />
-
-                  {/* Step Progress & Tag */}
-                  <div className="flex justify-between items-center mb-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] border border-[#CDEEEF]/60 text-[#287F91] text-[10px] font-mono tracking-widest uppercase font-bold shadow-xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#287F91] animate-pulse" />
-                      <Icon className="w-3.5 h-3.5 text-[#287F91]" />
-                      <span>{card.badge}</span>
-                    </div>
-                    <span className="font-mono text-xs font-black text-[#58747A]/80 tracking-wider">
-                      {card.num} / 04
-                    </span>
-                  </div>
-
-                  {/* Card Title */}
-                  <h3 className="font-black italic uppercase text-2xl sm:text-4xl text-[#102A30] tracking-tight mb-1.5">
-                    {card.title}
-                  </h3>
-
-                  {/* Highlight */}
-                  <div className="text-xs font-mono tracking-widest text-[#287F91] font-bold uppercase mb-4 flex items-center gap-1.5">
-                    <span className="text-[#287F91]">✦</span> {card.highlight}
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-xs sm:text-sm text-[#58747A] font-light leading-relaxed mb-5">
-                    {card.desc}
-                  </p>
-
-                  {/* Micro Feature Tags */}
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-6 sm:mb-8">
-                    {card.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2.5 py-1 rounded-lg bg-white/70 border border-[#CDEEEF]/50 text-[10px] font-mono font-medium text-[#287F91] tracking-wider uppercase"
-                      >
-                        {tag}
+                    {/* Step Progress & Tag */}
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F7F6] border border-[#CDEEEF]/60 text-[#287F91] text-[10px] font-mono tracking-widest uppercase font-bold shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#287F91] animate-pulse" />
+                        <Icon className="w-3.5 h-3.5 text-[#287F91]" />
+                        <span>{card.badge}</span>
+                      </div>
+                      <span className="font-mono text-xs font-black text-[#58747A]/80 tracking-wider">
+                        {card.num} / 04
                       </span>
-                    ))}
-                  </div>
-
-                  {/* Bottom Metrics and Controls */}
-                  <div className="flex justify-between items-end pt-5 sm:pt-6 border-t border-[#CDEEEF]/60">
-                    <div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-3xl sm:text-4xl font-mono font-black text-[#102A30] tracking-tight">
-                          {card.metric}
-                        </span>
-                        <span className="text-xs sm:text-sm font-mono font-bold text-[#287F91]">
-                          {card.unit}
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-[#58747A] uppercase tracking-wider font-semibold mt-1">
-                        {card.sub}
-                      </div>
                     </div>
 
-                    {/* Arrow Controls */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => selectCard((i - 1 + PRODUCT_CARDS.length) % PRODUCT_CARDS.length)}
-                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#CDEEEF] bg-white/80 hover:bg-[#102A30] hover:text-white text-[#102A30] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
-                        aria-label="Previous feature"
-                      >
-                        ←
-                      </button>
-                      <button
-                        onClick={() => selectCard((i + 1) % PRODUCT_CARDS.length)}
-                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#CDEEEF] bg-[#102A30] text-white hover:bg-[#287F91] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
-                        aria-label="Next feature"
-                      >
-                        →
-                      </button>
+                    {/* Card Title */}
+                    <h3 className="font-black italic uppercase text-2xl sm:text-3xl text-[#102A30] tracking-tight mb-1">
+                      {card.title}
+                    </h3>
+
+                    {/* Highlight */}
+                    <div className="text-xs font-mono tracking-widest text-[#287F91] font-bold uppercase mb-3 flex items-center gap-1.5">
+                      <span className="text-[#287F91]">✦</span> {card.highlight}
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-xs sm:text-sm text-[#58747A] font-light leading-relaxed mb-4">
+                      {card.desc}
+                    </p>
+
+                    {/* Micro Feature Tags */}
+                    <div className="flex flex-wrap gap-1.5 mb-5">
+                      {card.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2.5 py-0.5 rounded-lg bg-white/70 border border-[#CDEEEF]/50 text-[10px] font-mono font-medium text-[#287F91] tracking-wider uppercase"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Bottom Metrics and Controls */}
+                    <div className="flex justify-between items-end pt-4 border-t border-[#CDEEEF]/60">
+                      <div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-3xl font-mono font-black text-[#102A30] tracking-tight">
+                            {card.metric}
+                          </span>
+                          <span className="text-xs font-mono font-bold text-[#287F91]">
+                            {card.unit}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-[#58747A] uppercase tracking-wider font-semibold mt-0.5">
+                          {card.sub}
+                        </div>
+                      </div>
+
+                      {/* Arrow Controls */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => selectCard((i - 1 + PRODUCT_CARDS.length) % PRODUCT_CARDS.length)}
+                          className="w-9 h-9 rounded-full border border-[#CDEEEF] bg-white/80 hover:bg-[#102A30] hover:text-white text-[#102A30] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                          aria-label="Previous feature"
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={() => selectCard((i + 1) % PRODUCT_CARDS.length)}
+                          className="w-9 h-9 rounded-full border border-[#CDEEEF] bg-[#102A30] text-white hover:bg-[#287F91] flex items-center justify-center text-sm transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                          aria-label="Next feature"
+                        >
+                          →
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        {/* Sleek Minimalist Progress Segments */}
-        <div className="w-full max-w-xl flex items-center gap-2 pointer-events-auto py-1">
-          {PRODUCT_CARDS.map((card, idx) => (
-            <button
-              key={card.spec}
-              onClick={() => selectCard(idx)}
-              className="flex-1 flex flex-col gap-1 text-left cursor-pointer group"
-            >
-              <div className="w-full h-1 rounded-full bg-[#CDEEEF]/60 overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    activeCard === idx
-                      ? 'w-full bg-[#287F91]'
-                      : idx < activeCard
-                      ? 'w-full bg-[#102A30]'
-                      : 'w-0 bg-transparent'
-                  }`}
-                />
-              </div>
-              <span className={`text-[10px] font-mono tracking-wider font-semibold transition-colors ${
-                activeCard === idx ? 'text-[#102A30]' : 'text-[#58747A]/60 group-hover:text-[#58747A]'
-              }`}>
-                0{idx + 1} {card.spec}
-              </span>
-            </button>
-          ))}
+          {/* Sleek Minimalist Progress Segments */}
+          <div className="w-full max-w-lg flex items-center gap-2 pointer-events-auto">
+            {PRODUCT_CARDS.map((card, idx) => (
+              <button
+                key={card.spec}
+                onClick={() => selectCard(idx)}
+                className="flex-1 flex flex-col gap-1 text-left cursor-pointer group"
+              >
+                <div className="w-full h-1 rounded-full bg-[#CDEEEF]/60 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-300 ${
+                      activeCard === idx
+                        ? 'w-full bg-[#287F91]'
+                        : idx < activeCard
+                        ? 'w-full bg-[#102A30]'
+                        : 'w-0 bg-transparent'
+                    }`}
+                  />
+                </div>
+                <span className={`text-[10px] font-mono tracking-wider font-semibold transition-colors ${
+                  activeCard === idx ? 'text-[#102A30]' : 'text-[#58747A]/60 group-hover:text-[#58747A]'
+                }`}>
+                  0{idx + 1} {card.spec}
+                </span>
+              </button>
+            ))}
+          </div>
+
         </div>
       </div>
     </section>

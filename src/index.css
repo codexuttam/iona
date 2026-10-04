@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-/* Lenis Smooth Scroll Recommended Integrations */
+html, body {
+  overflow-x: hidden;
+}
+
 html.lenis,
 html.lenis body {
   height: auto;

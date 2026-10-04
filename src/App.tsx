@@ -153,8 +153,8 @@ export default function App() {
       .to(containerRef.current, { backgroundColor: '#F5FAF9', ease: 'none', duration: 1 })
       .to(containerRef.current, { backgroundColor: '#F8FEFD', ease: 'none', duration: 1 });
 
-    // 8. Cinematic DOM Elements Scroll Animation
-    const sectionIds = ['#hero', '#water', '#alkaline', '#ionised', '#process', '#product', '#final'];
+    // 8. Cinematic DOM Elements Scroll Animation (excludes #product which has its own pinned card timeline)
+    const sectionIds = ['#hero', '#water', '#alkaline', '#ionised', '#process', '#final'];
 
     sectionIds.forEach((id) => {
       const sec = document.querySelector(id);
@@ -211,7 +211,7 @@ export default function App() {
         );
       }
 
-      if (extraCards.length > 0) {
+      if (extraCards.length > 0 && id !== '#product') {
         gsap.fromTo(
           extraCards,
           {
@@ -266,7 +266,7 @@ export default function App() {
       <div 
         ref={containerRef} 
         id="app-scroll-container" 
-        className="w-full bg-[#F8FEFD] min-h-screen overflow-x-hidden relative transition-colors duration-300"
+        className="w-full bg-[#F8FEFD] min-h-screen relative transition-colors duration-300"
       >
         {/* Interactive Water Droplets & Click Ripple Canvas */}
         <WaterDropletsBackground />

@@ -76,18 +76,23 @@ export default function CameraRig() {
       fraction
     );
 
-    // Continuous dynamic rotation & framing in Product Section (Section 5)
-    if (expState.currentSection === 5) {
-      const p = Math.max(0, Math.min(3, expState.productScrollProgress ?? expState.activeProductCard));
+    // Continuous dynamic revolution & framing while the pinned Product showcase is on screen
+    if (expState.productActive) {
+      const p = Math.max(0, Math.min(3, expState.productScrollProgress));
       const i0 = Math.min(2, Math.floor(p));
       const i1 = Math.min(3, i0 + 1);
       const f = p - i0;
+      // Ease the in-between so the bottle "settles" label-forward on every card
+      const eased = f < 0.5 ? 4 * f * f * f : 1 - Math.pow(-2 * f + 2, 3) / 2;
 
       const p0 = PRODUCT_CARD_OFFSETS[i0];
       const p1 = PRODUCT_CARD_OFFSETS[i1];
 
-      const interpolatedPos = new THREE.Vector3().lerpVectors(p0.pos, p1.pos, f);
-      const interpolatedRot = new THREE.Vector3().lerpVectors(p0.rot, p1.rot, f);
+      const interpolatedPos = new THREE.Vector3().lerpVectors(p0.pos, p1.pos, eased);
+      const interpolatedRot = new THREE.Vector3().lerpVectors(p0.rot, p1.rot, eased);
+
+      // One full 360° revolution per card transition — lands front-facing on each card
+      interpolatedRot.y += (i0 + eased) * Math.PI * 2;
 
       // On narrow / mobile screens, shift bottle closer to center so it doesn't clip
       const isMobile = state.viewport.width < 5.5;
@@ -96,8 +101,15 @@ export default function CameraRig() {
         interpolatedPos.y += 0.35;
       }
 
-      targetBottlePos.current.lerp(interpolatedPos, 0.85);
-      targetBottleRot.current.lerp(interpolatedRot, 0.85);
+      targetCamPos.current.copy(CAMERA_TARGETS[5]);
+      targetBottlePos.current.copy(interpolatedPos);
+      targetBottleRot.current.copy(interpolatedRot);
+    } else {
+      // Unwind any accumulated revolutions so leaving the section never spins backwards wildly
+      const bottle = scene.getObjectByName('iona-bottle-base-group');
+      if (bottle && Math.abs(bottle.rotation.y) > Math.PI) {
+        bottle.rotation.y = ((bottle.rotation.y + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+      }
     }
 
     let lerpSpeed = expState.reducedMotion ? 0.2 : 0.085;
